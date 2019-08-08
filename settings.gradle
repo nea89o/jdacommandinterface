@@ -1,0 +1,6 @@
+rootProject.name = 'jdacommandinterface'
+include 'jdacommandinterface-core'
+include 'jdacommandinterface-awaiter'
+include 'jdacommandinterface-listeners'
+include 'jdacommandinterface-examples'
+

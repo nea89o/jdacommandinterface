@@ -1,0 +1,4 @@
+dependencies {
+    compile jda()
+    compile project(':jdacommandinterface-core')
+}

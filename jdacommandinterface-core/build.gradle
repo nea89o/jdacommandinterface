@@ -1,0 +1,7 @@
+dependencies {
+    compileOnly jda()
+    implementation reflections()
+    
+    testCompile junit()
+    testCompile mockito()
+}

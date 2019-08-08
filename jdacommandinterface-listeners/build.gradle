@@ -1,0 +1,5 @@
+dependencies {
+    compileOnly jda()
+    compileOnly reflections()
+    compileOnly project(':jdacommandinterface-core')
+}
