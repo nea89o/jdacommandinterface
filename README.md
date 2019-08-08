@@ -2,6 +2,24 @@
 
 Even though there are a lot of different Command handlers and interfaces, i decided to create my own framework. The ambition of this framework is to be somewhat close to [`discord.ext.commands`][discordpyext] from [discord.py][discordpy]
 
+
+## Installation
+Install simply via [Jitpack][jitpack]: 
+```groovy
+repositories {
+    maven {
+        url 'https://jitpack.io'
+    }
+    jcenter()
+}
+
+dependencies {
+    compile group: 'net.dv8tion', name:'JDA', version: '4.BETA.0_37'
+    compile group: 'com.github.romangraef.jdacommandinterface', name:'jdacommandinterface-core', version: '1.0'
+}
+```
+
+
 ### Features
 The whole library is currently split into three parts, which the individual user can mix and match.
 
@@ -57,6 +75,6 @@ public class Main {
 It doesn't get much simpler than that!
 
 
-
 [discordpy]: https://github.com/Rapptz/discord.py/
 [discordpyext]: https://discordpy.readthedocs.io/en/latest/ext/commands/index.html
+[jitpack]: https://jitpack.io
