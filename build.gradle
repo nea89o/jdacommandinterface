@@ -2,7 +2,7 @@ plugins {
     id 'java'
 }
 
-def versionInfo = [major: '3', minor: '0', revision: '1']
+def versionInfo = [major: '1', minor: '0', revision: '0']
 
 allprojects {
     sourceCompatibility = JavaVersion.VERSION_1_8
