@@ -21,6 +21,14 @@ public class CommandErrors {
         return t;
     }
 
+    /**
+     * Discovers and registers all {@link ErrorHandler}s in a package annotated with {@link RegisterErrorHandler}.
+     * <p>
+     * This is not recursive, so searching {@code tdl.example.a} won't find handlers in {@code tdl.example.a.b}. This
+     * finds all classes extending {@link ErrorHandler}.
+     *
+     * @param packageName the package to search
+     */
     @SuppressWarnings({"unsafe", "unchecked"})
     public void discoverHandlers(String packageName) {
         Reflections reflections = new Reflections(packageName);
@@ -37,6 +45,15 @@ public class CommandErrors {
 
     }
 
+    /**
+     * This method should rather be called "handleException", but is for internal use only, so I won't rename it just yet.
+     * This method will handle an exception and pass it to all Handlers handling this exception
+     *
+     * @param t
+     * @param context
+     *
+     * @return
+     */
     public boolean findHandler(Throwable t, Context context) {
         return errorHandlers.entrySet()
                 .stream()

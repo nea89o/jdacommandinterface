@@ -9,6 +9,9 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * The default implementation for the help command.
+ */
 @CommandDescription(
         name = "Help",
         triggers = {"help", "?"},

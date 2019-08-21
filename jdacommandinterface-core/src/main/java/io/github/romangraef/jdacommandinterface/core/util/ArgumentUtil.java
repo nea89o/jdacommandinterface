@@ -11,7 +11,22 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
 public class ArgumentUtil {
-
+    /**
+     * For internal use. Converts a string list into a list of objects according to a method definition.
+     *
+     * if varargs is set to true the last element of the result will be an array of those converted varargs
+     *
+     * @param context   the context of the command as passed to the {@link Converters}
+     * @param args      the arguments to convert
+     * @param argCount  the argument count of the method definition excluding {@link Context} and varargs
+     * @param isVarArgs whether the method has varargs.
+     * @param method    the method definition to use
+     *
+     * @return the arguments converted to objects.
+     * @throws NoConverterFoundException if the method asks for an object without a registered converter
+     * @throws ConversionException this is reraised from the converters and indicated some kind of user error
+     * @throws NotEnoughArgumentsException if the provided arguments aren't enough to fulfill the needs of the method.
+     */
     public static Object[] getArguments(Context context, String[] args, int argCount, boolean isVarArgs, Method method) throws NoConverterFoundException, ConversionException, NotEnoughArgumentsException {
         Object[] finalArgs = new Object[argCount + 1 + (isVarArgs ? 1 : 0)];
         finalArgs[0] = context;
@@ -36,7 +51,7 @@ public class ArgumentUtil {
         return finalArgs;
     }
 
-    public static Object[] getConvertedNormalArgs(String[] args, int argCount, Method method, Context context) throws NoConverterFoundException, ConversionException, NotEnoughArgumentsException {
+    private static Object[] getConvertedNormalArgs(String[] args, int argCount, Method method, Context context) throws NoConverterFoundException, ConversionException, NotEnoughArgumentsException {
         Object[] converted = new Object[argCount];
         Parameter[] parameters = method.getParameters();
         for (int i = 1; i < parameters.length; i++) {
