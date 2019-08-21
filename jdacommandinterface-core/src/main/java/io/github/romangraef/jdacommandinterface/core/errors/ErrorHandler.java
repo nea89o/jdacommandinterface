@@ -6,7 +6,7 @@ import io.github.romangraef.jdacommandinterface.core.Context;
  * Base class for an ErrorHandler to be registered in a {@link CommandErrors}. Annotate your ErrorHandler with {@link
  * RegisterErrorHandler}
  *
- * @param <T> Type of the throwable that will be caught
+ * @param <T> Type of the throwable that will be caught. Note: this checks root causes as well, so the actual exception your handler is called on might be of different type.
  */
 public abstract class ErrorHandler<T extends Throwable> {
     /**

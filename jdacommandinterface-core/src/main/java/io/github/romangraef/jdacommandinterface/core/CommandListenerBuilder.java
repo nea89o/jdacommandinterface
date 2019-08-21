@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.Message;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class CommandListenerBuilder {
@@ -24,6 +25,11 @@ public class CommandListenerBuilder {
 
     public CommandListenerBuilder discoverErrorHandlers(String packageName) {
         errors.discoverHandlers(packageName);
+        return this;
+    }
+
+    public CommandListenerBuilder addErrorHandler(Class<? extends Throwable> clazz, BiConsumer<Throwable, Context> consumer) {
+        errors.addErrorHandler(clazz, consumer);
         return this;
     }
 
