@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import javax.annotation.Nonnull;
 import java.awt.Color;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -53,7 +54,9 @@ public class CommandListener extends ListenerAdapter {
     public void onGenericEvent(@Nonnull GenericEvent event) {
         eventListeners.forEach(listener -> {
             try {
-                listener.getClass().getMethod("onEvent", GenericEvent.class).invoke(listener, event);
+                Method method = listener.getClass().getMethod("onEvent", GenericEvent.class);
+                method.setAccessible(true);
+                method.invoke(listener, event);
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 e.printStackTrace();
             }
@@ -154,7 +157,7 @@ public class CommandListener extends ListenerAdapter {
         if (errors.findHandler(e, ctx)) {
             return;
         }
-
+        e.printStackTrace();
         ctx.send(new EmbedBuilder()
                 .setColor(Color.RED)
                 .setDescription("There occurred an error during command execution")
@@ -167,5 +170,12 @@ public class CommandListener extends ListenerAdapter {
      */
     public void addEventListener(Object eventListener) {
         this.eventListeners.add(eventListener);
+    }
+
+    /**
+     * DO NOT USE THIS METHOD.
+     */
+    public void removeEventListener(Object eventListener) {
+        this.eventListeners.remove(eventListener);
     }
 }
