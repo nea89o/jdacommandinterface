@@ -1,4 +1,5 @@
 dependencies {
     compile jda()
     compile project(':jdacommandinterface-core')
+    compile project(':jdacommandinterface-paginator')
 }
