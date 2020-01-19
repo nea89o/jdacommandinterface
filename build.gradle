@@ -8,7 +8,7 @@ allprojects {
     sourceCompatibility = JavaVersion.VERSION_1_8
     group = 'io.github.romangraef'
     ext {
-        jdaVersion = '4.BETA.0_1'
+        jdaVersion = '4.0.0_72'
         reflectionsVersion = '0.9.10'
         mockitoVersion = '2.+'
         junitVersion = '4.11'
@@ -24,6 +24,7 @@ allprojects {
         jcenter()
     }
     apply plugin: 'java'
+
     configurations {
         testCompile.extendsFrom compileOnly
     }
