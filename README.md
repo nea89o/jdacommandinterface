@@ -15,7 +15,7 @@ repositories {
 
 dependencies {
     compile group: 'net.dv8tion', name:'JDA', version: '4.BETA.0_37'
-    compile group: 'com.github.romangraef.jdacommandinterface', name:'jdacommandinterface-core', version: '1.0'
+    compile group: 'com.github.romangraef.jdacommandinterface', name:'jdacommandinterface-core', version: '1.2.0'
 }
 ```
 
@@ -74,7 +74,12 @@ public class Main {
 ```
 It doesn't get much simpler than that!
 
+### Wiki
+
+For more information view the [wiki][wiki], which i try to keep up to date.
+
 
 [discordpy]: https://github.com/Rapptz/discord.py/
 [discordpyext]: https://discordpy.readthedocs.io/en/latest/ext/commands/index.html
 [jitpack]: https://jitpack.io
+[wiki]: https://github.com/romangraef/jdacommandinterface/wiki
