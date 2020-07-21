@@ -1,7 +1,3 @@
-package io.github.romangraef.jdacommandinterface.core;
+package io.github.romangraef.jdacommandinterface.core
 
-public class NoConverterFoundException extends Exception {
-    public <T> NoConverterFoundException(Class<T> clazz) {
-        super("No converter found for class: " + clazz.getCanonicalName());
-    }
-}
+class NoConverterFoundException(clazz: Class<*>) : Exception("No converter found for class: " + clazz.canonicalName)

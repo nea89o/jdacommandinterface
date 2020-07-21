@@ -1,90 +1,85 @@
-package io.github.romangraef.jdacommandinterface.core;
+package io.github.romangraef.jdacommandinterface.core
 
-import io.github.romangraef.jdacommandinterface.core.builtins.HelpCommand;
-import io.github.romangraef.jdacommandinterface.core.errors.CommandErrors;
-import io.github.romangraef.jdacommandinterface.core.util.RandomUtil;
-import net.dv8tion.jda.api.entities.Message;
+import io.github.romangraef.jdacommandinterface.core.builtins.HelpCommand
+import io.github.romangraef.jdacommandinterface.core.errors.CommandErrors
+import io.github.romangraef.jdacommandinterface.core.util.RandomUtil
+import net.dv8tion.jda.api.entities.Message
+import java.util.ArrayList
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-
-public class CommandListenerBuilder {
-
-    private Function<Message, String[]> prefixes;
-    private boolean mentionPrefix;
-    private List<String> admins = new ArrayList<>();
-    private CommandErrors errors = new CommandErrors();
-    private List<Command> commands = new ArrayList<>();
-
-    public CommandListenerBuilder() {
-        addCommand(new HelpCommand());
+class CommandListenerBuilder {
+    private var prefixes: ((Message) -> Array<String>)? = null
+    private var mentionPrefix = false
+    private var admins: MutableList<String> = ArrayList()
+    private val errors = CommandErrors()
+    private val commands: MutableList<Command> = ArrayList()
+    fun discoverErrorHandlers(packageName: String): CommandListenerBuilder {
+        errors.discoverHandlers(packageName)
+        return this
     }
 
-    public CommandListenerBuilder discoverErrorHandlers(String packageName) {
-        errors.discoverHandlers(packageName);
-        return this;
+    fun addErrorHandler(clazz: Class<out Throwable>, consumer: (Throwable, Context) -> Unit): CommandListenerBuilder {
+        errors.addErrorHandler(clazz, consumer)
+        return this
     }
 
-    public CommandListenerBuilder addErrorHandler(Class<? extends Throwable> clazz, BiConsumer<Throwable, Context> consumer) {
-        errors.addErrorHandler(clazz, consumer);
-        return this;
+    fun setAdmins(vararg admins: String): CommandListenerBuilder {
+        return setAdmins(admins.toList())
     }
 
-    public CommandListenerBuilder setAdmins(String... admins) {
-        return setAdmins(Arrays.asList(admins));
+    fun addAdmins(vararg admins: String): CommandListenerBuilder {
+        return addAdmins(admins.toList())
     }
 
-    public CommandListenerBuilder addAdmins(String... admins) {
-        return addAdmins(Arrays.asList(admins));
+    fun addAdmins(admins: List<String>): CommandListenerBuilder {
+        this.admins.addAll(admins)
+        return this
     }
 
-    public CommandListenerBuilder addAdmins(List<String> admins) {
-        this.admins.addAll(admins);
-        return this;
+    fun setAdmins(admins: List<String>): CommandListenerBuilder {
+        this.admins.clear()
+        this.addAdmins(admins)
+        return this
     }
 
-    public CommandListenerBuilder setAdmins(List<String> admins) {
-        this.admins = admins;
-        return this;
+    fun setPrefixes(prefixes: (Message) -> Array<String>): CommandListenerBuilder {
+        this.prefixes = prefixes
+        return this
     }
 
-    public CommandListenerBuilder setPrefixes(Function<Message, String[]> prefixes) {
-        this.prefixes = prefixes;
-        return this;
+    fun setPrefix(prefix: String): CommandListenerBuilder {
+        return setPrefixes(prefix)
     }
 
-    public CommandListenerBuilder setPrefix(String prefix) {
-        return setPrefixes(prefix);
+    fun setPrefix(prefixes: (Message) -> String): CommandListenerBuilder {
+        return setPrefixes { arrayOf(prefixes.invoke(it)) }
     }
 
-    public CommandListenerBuilder setPrefix(Function<Message, String> prefixes) {
-        return setPrefixes(message -> new String[]{prefixes.apply(message)});
+    fun setAllowMentionPrefix(mentionPrefix: Boolean): CommandListenerBuilder {
+        this.mentionPrefix = mentionPrefix
+        return this
     }
 
-    public CommandListenerBuilder setAllowMentionPrefix(boolean mentionPrefix) {
-        this.mentionPrefix = mentionPrefix;
-        return this;
+    fun addCommand(command: Command): CommandListenerBuilder {
+        commands.add(command)
+        return this
     }
 
-    public CommandListenerBuilder addCommand(Command command) {
-        commands.add(command);
-        return this;
+    fun findCommands(pack: String): CommandListenerBuilder {
+        RandomUtil.findCommands(pack, commands)
+        return this
     }
 
-    public CommandListenerBuilder findCommands(String pack) {
-        RandomUtil.findCommands(pack, commands);
-        return this;
+    fun build(): CommandListener {
+        return CommandListener(prefixes
+                ?: throw RuntimeException("Please provide a prefix"), mentionPrefix, admins, errors, commands)
     }
 
-    public CommandListener build() {
-        return new CommandListener(prefixes, mentionPrefix, admins, errors, commands);
+    fun setPrefixes(vararg prefixes: String): CommandListenerBuilder {
+        this.prefixes = { _ -> prefixes.toList().toTypedArray() }
+        return this
     }
 
-    public CommandListenerBuilder setPrefixes(String... prefixes) {
-        this.prefixes = ignored -> prefixes;
-        return this;
+    init {
+        addCommand(HelpCommand)
     }
 }

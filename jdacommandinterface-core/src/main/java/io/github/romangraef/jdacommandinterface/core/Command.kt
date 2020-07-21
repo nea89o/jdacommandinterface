@@ -1,87 +1,26 @@
-package io.github.romangraef.jdacommandinterface.core;
+package io.github.romangraef.jdacommandinterface.core
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.lang.reflect.Method
+import java.lang.reflect.Parameter
 
-import static io.github.romangraef.jdacommandinterface.core.util.ArgumentUtil.getArguments;
+abstract class Command : ICommand {
+    private val invoke: Method = javaClass.methods
+            .filter { it.name == "execute" }
+            .firstOrNull { Context::class.java.isAssignableFrom(it.parameterTypes[0]) }
+            ?: throw RuntimeException("Please implement a method named `execute` in ${javaClass.simpleName}")
 
-public abstract class Command {
+    final override val isVarArgs: Boolean = invoke.isVarArgs
+    final override val argCount: Int = invoke.parameterCount - 1 - if (isVarArgs) 1 else 0
+    final override val description: CommandDescription = javaClass.getAnnotation(CommandDescription::class.java)
+    final override val checks: Array<Check> = javaClass.getAnnotation(Checks::class.java)?.value ?: arrayOf()
+    override val parameters: Array<Parameter> = invoke.parameters
 
-    private Method invoke;
-    private int argCount;
-    private boolean varArgs;
-    private CommandDescription description;
-    private Checks checks;
-
-    public Command() {
-        invoke = Stream.of(getClass().getMethods())
-                .filter(method -> method.getName().equals("execute"))
-                .filter(method -> Context.class.isAssignableFrom(method.getParameterTypes()[0]))
-                .findAny().orElseThrow(() -> new RuntimeException("Please implement a method named `execute` in " + getClass().getSimpleName()));
-        varArgs = invoke.isVarArgs();
-        argCount = invoke.getParameterCount() - 1 - (varArgs ? 1 : 0);
-        invoke.setAccessible(true);
-        description = getClass().getAnnotation(CommandDescription.class);
-        checks = getClass().getAnnotation(Checks.class);
-    }
-
-    public final void runCommand(Context context, String[] args) throws NoConverterFoundException, ConversionException, NotEnoughArgumentsException, InvocationTargetException {
-        Object[] finalArgs = getArguments(context, args, argCount, isVarArgs(), invoke);
-        try {
-            invoke.invoke(this, finalArgs);
-        } catch (IllegalAccessException e) {
-            context.captureError(e);
-        }
+    override fun invokeCommand(arguments: Array<Any?>) {
+        invoke.invoke(this, *arguments)
     }
 
 
-    public List<Check> runChecks(Context context) {
-        return Stream.of(getChecks()).filter(func -> !func.check(context)).collect(Collectors.toList());
-    }
-
-    public Check[] getChecks() {
-        if (this.checks == null) {
-            return new Check[0];
-        }
-        return checks.value();
-    }
-
-    public String getName() {
-        return description.name();
-    }
-
-    public int getArgCount() {
-        return argCount;
-    }
-
-    public CommandDescription getDescription() {
-        return description;
-    }
-
-    public String getShortDescription() {
-        return description.description();
-    }
-
-    public String getLongDescription() {
-        return description.longDescription();
-    }
-
-    public boolean isVarArgs() {
-        return varArgs;
-    }
-
-    public String[] getTriggers() {
-        return description.triggers();
-    }
-
-    public boolean isTrigger(String text) {
-        return Stream.of(description.triggers()).anyMatch(text::equalsIgnoreCase);
-    }
-
-    public boolean isHidden() {
-        return getDescription().hidden();
+    init {
+        invoke.isAccessible = true
     }
 }

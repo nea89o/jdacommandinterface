@@ -1,23 +1,16 @@
-package io.github.romangraef.jdacommandinterface.core.converters;
+package io.github.romangraef.jdacommandinterface.core.converters
 
-import io.github.romangraef.jdacommandinterface.core.Context;
-import io.github.romangraef.jdacommandinterface.core.ConversionException;
+import io.github.romangraef.jdacommandinterface.core.Context
+import io.github.romangraef.jdacommandinterface.core.ConversionException
+import java.util.regex.Pattern
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-public class IDConverter implements Converter<Long> {
-    private static final Pattern ID_PATTERN = Pattern.compile("[0-9]+");
-    public static IDConverter INSTANCE = new IDConverter();
-
-    protected IDConverter() {
+object IDConverter : Converter<Long> {
+    @Throws(ConversionException::class)
+    override fun convert(context: Context, arg: String): Long {
+        val matcher = ID_PATTERN.matcher(arg)
+        if (!matcher.find()) throw ConversionException()
+        return matcher.group().toLong()
     }
 
-    @Override
-    public Long convert(Context ctx, String arg) throws ConversionException {
-        Matcher matcher = ID_PATTERN.matcher(arg);
-        if (!matcher.find())
-            throw new ConversionException();
-        return Long.valueOf(matcher.group());
-    }
+    private val ID_PATTERN = Pattern.compile("[0-9]+")!!
 }

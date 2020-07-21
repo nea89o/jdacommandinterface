@@ -1,14 +1,22 @@
-package io.github.romangraef.jdacommandinterface.core.converters;
+package io.github.romangraef.jdacommandinterface.core.converters
 
-import io.github.romangraef.jdacommandinterface.core.Context;
-import io.github.romangraef.jdacommandinterface.core.ConversionException;
-import net.dv8tion.jda.api.entities.Message;
+import io.github.romangraef.jdacommandinterface.core.Context
+import io.github.romangraef.jdacommandinterface.core.ConversionException
+import net.dv8tion.jda.api.entities.Message
 
 @FunctionalInterface
-public interface Converter<T> {
-    default T convert(Context context, Message mes) throws ConversionException {
-        return convert(context, mes.getContentRaw());
+interface Converter<T> {
+    @Throws(ConversionException::class)
+    fun convert(context: Context, mes: Message): T {
+        return convert(context, mes.contentRaw)
     }
 
-    T convert(Context context, String arg) throws ConversionException;
+    @Throws(ConversionException::class)
+    fun convert(context: Context, arg: String): T
+
+    companion object {
+        fun <T> create(internalConverter: (ctx: Context, arg: String) -> T): Converter<T> = object : Converter<T> {
+            override fun convert(context: Context, arg: String): T = internalConverter.invoke(context, arg)
+        }
+    }
 }

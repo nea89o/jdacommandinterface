@@ -1,51 +1,42 @@
-package io.github.romangraef.jdacommandinterface.core.errors;
+package io.github.romangraef.jdacommandinterface.core.errors
 
-import io.github.romangraef.jdacommandinterface.core.Context;
-import org.reflections.Reflections;
+import io.github.romangraef.jdacommandinterface.core.Context
+import org.reflections.Reflections
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.ParameterizedType
+import java.util.HashMap
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Predicate;
-
-public class CommandErrors {
-
-    private Map<Predicate<Throwable>, BiConsumer<Throwable, Context>> errorHandlers = new HashMap<>();
-
-    private static List<Throwable> getCauseList(Throwable t) {
-        List<Throwable> throwables = new ArrayList<>();
-        do {
-            throwables.add(t);
-        } while ((t = t.getCause()) != null);
-        return throwables;
-    }
+class CommandErrors {
+    private val errorHandlers: MutableMap<(Throwable) -> Boolean, (Throwable, Context) -> Unit> = HashMap()
 
     /**
-     * Discovers and registers all {@link ErrorHandler}s in a package annotated with {@link RegisterErrorHandler}.
-     * <p>
-     * This is not recursive, so searching {@code tdl.example.a} won't find handlers in {@code tdl.example.a.b}. This
-     * finds all classes extending {@link ErrorHandler}.
+     * Discovers and registers all [ErrorHandler]s in a package annotated with [RegisterErrorHandler].
+     *
+     *
+     * This is not recursive, so searching `tdl.example.a` won't find handlers in `tdl.example.a.b`. This
+     * finds all classes extending [ErrorHandler].
      *
      * @param packageName the package to search
      */
-    @SuppressWarnings({"unsafe", "unchecked"})
-    public void discoverHandlers(String packageName) {
-        Reflections reflections = new Reflections(packageName);
-        for (Class<?> clazz : reflections.getTypesAnnotatedWith(RegisterErrorHandler.class)) {
-            if (ErrorHandler.class.isAssignableFrom(clazz)) {
-                Class<? extends Throwable> throwableClass = (Class<? extends Throwable>) ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments()[0];
+    fun discoverHandlers(packageName: String?) {
+        val reflections = Reflections(packageName)
+        for (clazz in reflections.getTypesAnnotatedWith(RegisterErrorHandler::class.java)) {
+            if (ErrorHandler::class.java.isAssignableFrom(clazz)) {
+                val throwableClass = (clazz.genericSuperclass as ParameterizedType).actualTypeArguments[0] as Class<Throwable>
                 try {
-                    addErrorHandler(throwableClass, ((ErrorHandler) clazz.getConstructor().newInstance())::handle);
-                } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                    e.printStackTrace();
+                    val eh = clazz.getConstructor().newInstance() as ErrorHandler<*>
+                    addErrorHandler(throwableClass) { throwable, ctx -> eh.handle(throwable, ctx) }
+                } catch (e: InstantiationException) {
+                    e.printStackTrace()
+                } catch (e: IllegalAccessException) {
+                    e.printStackTrace()
+                } catch (e: NoSuchMethodException) {
+                    e.printStackTrace()
+                } catch (e: InvocationTargetException) {
+                    e.printStackTrace()
                 }
             }
         }
-
     }
 
     /**
@@ -57,18 +48,22 @@ public class CommandErrors {
      *
      * @return whether the exception was handled
      */
-    public boolean findHandler(Throwable t, Context context) {
-        return errorHandlers.entrySet()
-                .stream()
-                .filter(entry -> entry.getKey().test(t))
-                .peek(entry -> entry.getValue().accept(t, context))
-                .findAny()
-                .isPresent();
+    fun findHandler(t: Throwable, context: Context): Boolean {
+        return errorHandlers.entries
+                .filter { it.key.invoke(t) }
+                .onEach { it.value.invoke(t, context) }
+                .any()
     }
 
-    public void addErrorHandler(Class<? extends Throwable> clazz, BiConsumer<Throwable, Context> consumer) {
-        errorHandlers.put(throwable -> getCauseList(throwable).stream().anyMatch(clazz::isInstance), consumer);
+    fun addErrorHandler(clazz: Class<out Throwable>, consumer: (Throwable, Context) -> Unit) {
+        errorHandlers[{ getCauseList(it).any { obj -> clazz.isInstance(obj) } }] = consumer
     }
 
+    private fun getCauseList(t: Throwable): List<Throwable> =
+            generateSequence(
+                    t, {
+                it.cause
+            }
+            ).toList()
 
 }

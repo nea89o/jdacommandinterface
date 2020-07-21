@@ -1,65 +1,59 @@
-package io.github.romangraef.jdacommandinterface.core.converters;
+package io.github.romangraef.jdacommandinterface.core.converters
 
-import io.github.romangraef.jdacommandinterface.core.Context;
-import io.github.romangraef.jdacommandinterface.core.ConversionException;
-import io.github.romangraef.jdacommandinterface.core.NoConverterFoundException;
-import net.dv8tion.jda.api.entities.ISnowflake;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import io.github.romangraef.jdacommandinterface.core.Context
+import io.github.romangraef.jdacommandinterface.core.ConversionException
+import io.github.romangraef.jdacommandinterface.core.NoConverterFoundException
+import io.github.romangraef.jdacommandinterface.core.util.RandomUtil
+import net.dv8tion.jda.api.entities.ISnowflake
+import net.dv8tion.jda.api.entities.Role
+import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.entities.User
+import java.awt.Color
 
-import java.awt.Color;
-import java.util.HashMap;
-import java.util.Map;
+object Converters {
+    private val converters: MutableMap<Class<*>, Converter<*>> = mutableMapOf()
 
-import static io.github.romangraef.jdacommandinterface.core.util.RandomUtil.createSnowflake;
-
-public class Converters {
-    private static Map<Class, Converter> converters = new HashMap<>();
-
-
-    static {
-        registerConverter(String.class, (context, arg) -> arg);
-        registerConverter(TextChannel.class, TextChannelConverter.INSTANCE);
-        registerConverter(Boolean.class, (context, arg) -> convertBoolean(arg));
-        registerConverter(Boolean.TYPE, (context, arg) -> convertBoolean(arg));
-        registerConverter(Long.class, (context, arg) -> Long.parseLong(arg));
-        registerConverter(Long.TYPE, (context, arg) -> Long.parseLong(arg));
-        registerConverter(Integer.class, (context, arg) -> Integer.valueOf(arg));
-        registerConverter(Integer.TYPE, (context, arg) -> Integer.parseInt(arg));
-        registerConverter(Color.class, ColorConverter.INSTANCE);
-        registerConverter(User.class, UserConverter.INSTANCE);
-        registerConverter(ISnowflake.class, (context, arg) -> createSnowflake(IDConverter.INSTANCE.convert(context, arg)));
-        registerConverter(Role.class, RoleConverter.INSTANCE);
+    @Throws(ConversionException::class)
+    private fun convertBoolean(arg: String): Boolean {
+        if (arg.equals("yes", ignoreCase = true)) return true
+        if (arg.equals("y", ignoreCase = true)) return true
+        if (arg.equals("no", ignoreCase = true)) return false
+        if (arg.equals("n", ignoreCase = true)) return false
+        if (arg.equals("true", ignoreCase = true)) return true
+        if (arg.equals("false", ignoreCase = true)) return false
+        throw ConversionException()
     }
 
-
-    private static Boolean convertBoolean(String arg) throws ConversionException {
-        if (arg.equalsIgnoreCase("yes")) return true;
-        if (arg.equalsIgnoreCase("y")) return true;
-        if (arg.equalsIgnoreCase("no")) return false;
-        if (arg.equalsIgnoreCase("n")) return false;
-        if (arg.equalsIgnoreCase("true")) return true;
-        if (arg.equalsIgnoreCase("false")) return false;
-        throw new ConversionException();
+    @JvmStatic
+    fun <T> registerConverter(clazz: Class<T>, converter: Converter<T>) {
+        converters[clazz] = converter
     }
 
-
-    public static <T> void registerConverter(Class<T> clazz, Converter<T> converter) {
-        converters.put(clazz, converter);
+    @Suppress("UNCHECKED_CAST")
+    @JvmStatic
+    @Throws(NoConverterFoundException::class)
+    fun <T> findConverter(clazz: Class<out T>): Converter<T> {
+        return converters[clazz] as? Converter<T> ?: throw NoConverterFoundException(clazz)
     }
 
-    @SuppressWarnings({"unchecked"})
-    public static <T> Converter<T> findConverter(Class<T> clazz) throws NoConverterFoundException {
-        Converter<T> converter = ((Converter<T>) converters.get(clazz));
-        if (converter == null) {
-            throw new NoConverterFoundException(clazz);
-        }
-        return converter;
+    @JvmStatic
+    @Throws(NoConverterFoundException::class, ConversionException::class)
+    fun <T> convert(clazz: Class<out T>, context: Context, arg: String): T {
+        return findConverter(clazz).convert(context, arg)
     }
 
-
-    public static <T> T convert(Class<T> clazz, Context context, String arg) throws NoConverterFoundException, ConversionException {
-        return findConverter(clazz).convert(context, arg);
+    init {
+        registerConverter(String::class.java, Converter.create { _, arg -> arg })
+        registerConverter(TextChannel::class.java, TextChannelConverter)
+        registerConverter(Boolean::class.java, Converter.create { _, arg -> convertBoolean(arg) })
+        registerConverter(java.lang.Boolean.TYPE, Converter.create { _, arg -> convertBoolean(arg) })
+        registerConverter(Long::class.java, Converter.create { _, arg -> arg.toLong() })
+        registerConverter(java.lang.Long.TYPE, Converter.create { _, arg -> arg.toLong() })
+        registerConverter(Int::class.java, Converter.create { _, arg -> Integer.valueOf(arg) })
+        registerConverter(Integer.TYPE, Converter.create { _, arg -> arg.toInt() })
+        registerConverter(Color::class.java, ColorConverter)
+        registerConverter(User::class.java, UserConverter)
+        registerConverter(ISnowflake::class.java, Converter.create { context, arg -> RandomUtil.createSnowflake(IDConverter.convert(context, arg)) })
+        registerConverter(Role::class.java, RoleConverter)
     }
 }

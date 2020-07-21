@@ -1,38 +1,33 @@
-package io.github.romangraef.jdacommandinterface.core.util;
+package io.github.romangraef.jdacommandinterface.core.util
 
-import io.github.romangraef.jdacommandinterface.core.Command;
-import io.github.romangraef.jdacommandinterface.core.CommandDescription;
-import net.dv8tion.jda.api.entities.ISnowflake;
-import org.reflections.Reflections;
+import io.github.romangraef.jdacommandinterface.core.Command
+import io.github.romangraef.jdacommandinterface.core.CommandDescription
+import net.dv8tion.jda.api.entities.ISnowflake
+import org.reflections.Reflections
+import org.slf4j.LoggerFactory
 
-import java.util.List;
-
-import static org.slf4j.LoggerFactory.getLogger;
-
-public class RandomUtil {
-
-    public static ISnowflake createSnowflake(long id) {
-        return () -> id;
+object RandomUtil {
+    fun createSnowflake(id: Long): ISnowflake {
+        return ISnowflake { id }
     }
 
-    public static long parseLongSafe(String text) {
-        try {
-            return Long.parseUnsignedLong(text);
-        } catch (NumberFormatException e) {
-            return 0L;
-        }
+    fun parseLongSafe(text: String): Long = try {
+        text.toLong()
+    } catch (e: NumberFormatException) {
+        0L
     }
 
-
-    public static void findCommands(String pack, List<Command> commands) {
-        Reflections reflections = new Reflections(pack);
-        for (Class<?> clazz : reflections.getTypesAnnotatedWith(CommandDescription.class)) {
-            if (Command.class.isAssignableFrom(clazz)) {
+    fun findCommands(pack: String, commands: MutableList<Command>) {
+        val reflections = Reflections(pack)
+        for (clazz in reflections.getTypesAnnotatedWith(CommandDescription::class.java)) {
+            if (Command::class.java.isAssignableFrom(clazz)) {
                 try {
-                    Command command = (Command) clazz.newInstance();
-                    commands.add(command);
-                } catch (InstantiationException | IllegalAccessException e) {
-                    getLogger("loader").error("Failed to create command " + clazz.getSimpleName(), e);
+                    val command = clazz.newInstance() as Command
+                    commands.add(command)
+                } catch (e: InstantiationException) {
+                    LoggerFactory.getLogger("loader").error("Failed to create command " + clazz.simpleName, e)
+                } catch (e: IllegalAccessException) {
+                    LoggerFactory.getLogger("loader").error("Failed to create command " + clazz.simpleName, e)
                 }
             }
         }

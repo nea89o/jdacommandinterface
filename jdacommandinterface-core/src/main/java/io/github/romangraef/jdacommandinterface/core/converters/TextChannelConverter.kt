@@ -1,28 +1,20 @@
-package io.github.romangraef.jdacommandinterface.core.converters;
+package io.github.romangraef.jdacommandinterface.core.converters
 
+import io.github.romangraef.jdacommandinterface.core.Context
+import io.github.romangraef.jdacommandinterface.core.ConversionException
+import net.dv8tion.jda.api.entities.TextChannel
 
-import io.github.romangraef.jdacommandinterface.core.Context;
-import io.github.romangraef.jdacommandinterface.core.ConversionException;
-import net.dv8tion.jda.api.entities.TextChannel;
-
-public class TextChannelConverter implements Converter<TextChannel> {
-    public static final TextChannelConverter INSTANCE = new TextChannelConverter();
-
-    protected TextChannelConverter() {
-    }
-
-
-    @Override
-    public TextChannel convert(Context context, String arg) throws ConversionException {
+object TextChannelConverter : Converter<TextChannel> {
+    @Throws(ConversionException::class)
+    override fun convert(context: Context, arg: String): TextChannel {
         try {
-            long id = IDConverter.INSTANCE.convert(context, arg);
-            TextChannel chan = context.getJDA().getTextChannelById(id);
+            val id: Long = IDConverter.convert(context, arg)
+            val chan = context.jda.getTextChannelById(id)
             if (chan != null) {
-                return chan;
+                return chan
             }
-        } catch (ConversionException e) {
+        } catch (e: ConversionException) {
         }
-        return context.getJDA().getTextChannelsByName(arg, true).stream().findFirst().orElseThrow(ConversionException::new);
-
+        return context.guild?.getTextChannelsByName(arg, true)?.firstOrNull() ?: throw ConversionException()
     }
 }

@@ -1,39 +1,32 @@
-package io.github.romangraef.jdacommandinterface.core;
+package io.github.romangraef.jdacommandinterface.core
 
-import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.Permission
 
-public enum Check {
-    DEVELOPER_ONLY() {
-        @Override
-        public boolean check(Context context) {
-            return context.getCommandListener().getAdmins().contains(context.getAuthor().getId());
+enum class Check {
+    DEVELOPER_ONLY {
+        override fun check(context: Context): Boolean {
+            return context.commandListener.admins.contains(context.author.id)
         }
 
-        @Override
-        public String getDescription() {
-            return "Just for developer";
-        }
+        override val description: String = "Just for developer"
     },
-    ADMIN_ONLY() {
-        @Override
-        public boolean check(Context context) {
+    ADMIN_ONLY {
+        override fun check(context: Context): Boolean {
             return DEVELOPER_ONLY.check(context) ||
-                    (context.getMember() != null && context.getMember().hasPermission(Permission.MANAGE_SERVER));
+                    context.member?.hasPermission(Permission.MANAGE_SERVER) ?: false
         }
 
-        @Override
-        public String getDescription() {
-            return "For this command you need `MANAGE_SERVER` permissions on this discord to execute this command";
-        }
+        override val description: String =
+                "For this command you need `MANAGE_SERVER` permissions on this discord to execute this command"
+
     };
 
-    abstract boolean check(Context context);
+    abstract fun check(context: Context): Boolean
 
     /**
      * Error description
      *
      * @return a generic description
      */
-    abstract String getDescription();
-
+    abstract val description: String
 }

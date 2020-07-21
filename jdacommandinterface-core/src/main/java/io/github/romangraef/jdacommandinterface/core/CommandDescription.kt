@@ -1,19 +1,11 @@
-package io.github.romangraef.jdacommandinterface.core;
+package io.github.romangraef.jdacommandinterface.core
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
-@Retention(RetentionPolicy.RUNTIME)
-public @interface CommandDescription {
-    String name();
-
-    String[] triggers();
-
-    String longDescription();
-
-    String description();
-
-    boolean hidden() default false;
-
-    String[] usage();
-}
+@Retention(AnnotationRetention.RUNTIME)
+annotation class CommandDescription(
+        val name: String,
+        val triggers: Array<String> = [],
+        val longDescription: String = "",
+        val description: String = "",
+        val hidden: Boolean = false,
+        val usage: Array<String> = []
+)

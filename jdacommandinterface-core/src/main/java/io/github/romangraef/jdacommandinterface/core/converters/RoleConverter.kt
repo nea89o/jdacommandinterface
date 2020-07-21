@@ -1,26 +1,20 @@
-package io.github.romangraef.jdacommandinterface.core.converters;
+package io.github.romangraef.jdacommandinterface.core.converters
 
+import io.github.romangraef.jdacommandinterface.core.Context
+import io.github.romangraef.jdacommandinterface.core.ConversionException
+import net.dv8tion.jda.api.entities.Role
 
-import io.github.romangraef.jdacommandinterface.core.Context;
-import io.github.romangraef.jdacommandinterface.core.ConversionException;
-import net.dv8tion.jda.api.entities.Role;
-
-public class RoleConverter implements Converter<Role> {
-    public static final RoleConverter INSTANCE = new RoleConverter();
-
-    protected RoleConverter() {
-    }
-
-    @Override
-    public Role convert(Context context, String arg) throws ConversionException {
+object RoleConverter : Converter<Role> {
+    @Throws(ConversionException::class)
+    override fun convert(context: Context, arg: String): Role {
         try {
-            long id = IDConverter.INSTANCE.convert(context, arg);
-            Role r = context.getJDA().getRoleById(id);
+            val id: Long = IDConverter.convert(context, arg)
+            val r = context.jda.getRoleById(id)
             if (r != null) {
-                return r;
+                return r
             }
-        } catch (ConversionException e) {
+        } catch (e: ConversionException) {
         }
-        return context.getGuild().getRolesByName(arg, true).stream().findFirst().orElseThrow(ConversionException::new);
+        return context.guild?.getRolesByName(arg, true)?.firstOrNull() ?: throw ConversionException()
     }
 }

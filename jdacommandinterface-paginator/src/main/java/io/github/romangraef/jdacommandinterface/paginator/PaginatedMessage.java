@@ -25,7 +25,7 @@ public class PaginatedMessage<T> extends ReactableMessage {
         on(LAST_BUTTON, ignored -> setPage(supplier.getLastIndex()));
     }
 
-    public static <T> PaginatedMessage sendPaginatedMessage(Context context, PageSupplier<T> pageSupplier, MessageFormatter<T> formatter) {
+    public static <T> PaginatedMessage<T> sendPaginatedMessage(Context context, PageSupplier<T> pageSupplier, MessageFormatter<T> formatter) {
         PaginatedMessage<T> tPaginatedMessage = new PaginatedMessage<T>(context.getChannel(), pageSupplier, formatter);
         tPaginatedMessage.register(context.getCommandListener());
         return tPaginatedMessage;
